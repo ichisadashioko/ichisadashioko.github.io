@@ -12,6 +12,11 @@
     src: url('../fonts/mimich.ttf');
 }
 
+@font-face {
+    font-family: Consolas;
+    src: url('../fonts/Consolas.ttf');
+}
+
 * {
     margin: 0;
     padding: 0;
