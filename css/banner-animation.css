@@ -1,0 +1,64 @@
+.banner {
+    width: 100%;
+}
+.banner img {
+    width: 100%;
+    height: auto;
+}
+.container {
+    display: flex;
+    justify-content: space-around;
+}
+.banner-1 {
+    opacity: 1;
+    animation-name: b1;
+    animation-iteration-count: infinite;
+    animation-duration: 6s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+}
+.banner-2 {
+    max-width: 768px;
+    left: 0;
+    position: absolute;
+    animation-name: b2;
+    animation-iteration-count: infinite;
+    animation-duration: 6s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+    z-index: 30;
+}
+@keyframes b1 {
+    0% {
+        opacity: 1;
+    }
+    25% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    75% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+@keyframes b2 {
+    0% {
+        opacity: 0;
+    }
+    25% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
