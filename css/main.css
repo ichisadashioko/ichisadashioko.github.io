@@ -1,0 +1,358 @@
+/**
+* Initialize stylings
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+@font-face {
+    font-family: mimich;
+    src: url('../fonts/mimich.ttf');
+}
+
+@font-face {
+    font-family: Consolas;
+    src: url('../fonts/Consolas.ttf');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    font-family: Consolas;
+}
+
+html, body {
+    min-width: 100%;
+    color: white;
+    margin: 0;
+    padding: 0;
+    background-color: black;
+}
+
+.menu {
+    display: none;
+}
+
+.menu .drop-down {
+    display: none;
+}
+
+@media screen and (max-width: 968px) {
+    .left-bar, .right-bar {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .nav {
+        display: none;
+    }
+    .menu {
+        display: block;
+    }
+}
+
+a {
+    display: block;
+    text-decoration: none;
+}
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+/**
+* Content stylings
+*/
+
+/**
+* mobile navigation
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+.menu {
+    
+    text-align: center;
+    margin: 10px auto;
+    text-align: center;
+    min-width: 100%;
+    height: 48px;
+    position: relative;
+}
+
+.menu .drop-down {
+    z-index: 9999;
+    position: absolute;
+    top: 48px;
+    min-width: 100%;
+}
+
+.drop-down p {
+    font-family: Consolas;
+    font-size: 2em;
+    padding: 10px 0px;
+    background-color: rgb(88, 88, 88);
+    min-width: 100%;
+}
+
+.menu:hover .drop-down {
+    display: block;
+}
+
+.menu:hover .box {
+    color: rgb(185, 65, 65);
+    background-color: rgb(185, 65, 65);
+    ;
+}
+
+.drop-down p:hover {
+    background-color: rgb(211, 81, 81);
+}
+
+.box {
+    margin: auto;
+    color: rgb(70, 158, 230);
+    background-color: rgb(70, 158, 230);
+    border-radius: 5px;
+    /* position: absolute; */
+    width: 46px;
+    height: 12px;
+    top: 2px;
+    box-shadow: 0px 16px currentColor, 0px 32px currentColor;
+}
+
+/**
+* navigation bar
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+.nav {
+    width: 100%;
+}
+
+.nav p {
+    display: inline-block;
+    padding: 0px 10px;
+    font-family: Consolas;
+    font-size: 32px;
+    /* border-radius: 10px; */
+}
+
+.nav p:hover {
+    background-color: rgb(211, 81, 81);
+}
+
+.nav p a {
+    color: #fff;
+}
+
+.about {
+    float: right;
+}
+p.active {
+    background-color: rgb(211, 81, 81);
+}
+/**
+* header
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+.header {
+    padding: 20px 0;
+    width: 100%;
+    text-align: center;
+}
+
+.header p {
+    font-size: 1.25em;
+    font-family: mimich;
+}
+
+.main-content {
+    /* background-color: rgb(146, 55, 55); */
+    max-width: 768px;
+    position: relative;
+}
+
+/**
+* header-animation
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+.header {
+    animation: header 4s linear 0s infinite alternate none;
+}
+
+@keyframes header {
+    from {
+        background-color: red;
+    }
+    to {
+        background-color: rgb(0, 255, 255);
+    }
+}
+
+/**
+* banner-animation
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+.banner {
+    width: 100%;
+}
+
+.banner img {
+    width: 100%;
+    height: auto;
+}
+
+.banner-1 {
+    opacity: 1;
+    animation-name: b1;
+    animation-iteration-count: infinite;
+    animation-duration: 6s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+}
+
+.banner-2 {
+    max-width: 768px;
+    left: 0;
+    top: 0;
+    position: absolute;
+    animation-name: b2;
+    animation-iteration-count: infinite;
+    animation-duration: 6s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+    z-index: 30;
+}
+
+@keyframes b1 {
+    0% {
+        opacity: 1;
+    }
+    25% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    75% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes b2 {
+    0% {
+        opacity: 0;
+    }
+    25% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/**
+* unsorted
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+.container {
+    display: flex;
+    justify-content: space-around;
+}
+
+
+/**
+* keeping the footer down
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+html, body {
+    height: 100%;
+}
+#container {
+    min-height: 100%;
+}
+#main {
+    overflow: auto;
+    padding-bottom: 20px;
+
+}
+#footer p{
+    position: absolute;
+    height: 20px;
+    margin-top: -20px;
+    clear: both;
+    padding-left: 5px;
+    padding-right: 5px;
+    animation-name: footer;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes footer {
+    0% {
+        left: 0%;
+        color: red;
+    }
+    100% {
+        left: 50%;
+        color: rgb(0, 153, 255);
+    }
+}
+
+/**
+* side-bar
+*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+.place-holder {
+    max-width: 600px;
+}
+.place-holder img {
+    width: 100%;
+}
