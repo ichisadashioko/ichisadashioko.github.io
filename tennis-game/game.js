@@ -1,6 +1,6 @@
 var canvas;
 var canvasContext;
-var fps = 60;
+var fps = 24;
 var wTime = 6;
 var hTime = 3;
 
