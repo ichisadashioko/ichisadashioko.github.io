@@ -1,8 +1,11 @@
 var canvas;
 var canvasContext;
-var fps = 24;
+var fps = 60;
 var wTime = 6;
 var hTime = 3;
+
+let timer = 0;
+let boolTimer = false;
 
 var score1 = 0;
 var score2 = 0;
@@ -26,6 +29,10 @@ paddle.x = 0;
 paddle.y = 0;
 paddle.yVelocity = 0;
 paddle.bonusVelocity = 0;
+
+var lastHit = new Object();
+lastHit.offset = 0;
+lastHit.y = 0;
 
 var botPaddle = new Object();
 botPaddle.thickness = PADDLE_THICKNESS;
@@ -55,6 +62,7 @@ window.onload = function () {
         drawEverything();
         AI(botPaddle);
         // AI(paddle);
+
     }, 1000 / fps);
 
 
@@ -93,48 +101,40 @@ function initialize() {
 
 function AI(obj) {
 
-    // if(obj.y - (obj.height / 2) > ball.y){
-    //     obj.y = obj.y - (obj.yVelocity + obj.bonusVelocity);
-    // }
-    // if(obj.y + (obj.height / 2) < ball.y){
-    //     obj.y = obj.y + (obj.yVelocity + obj.bonusVelocity);
-    // }
-
-
-    if (obj.y > ball.y) {
+    if (obj.y - (obj.height / 4) > ball.y) {
         obj.y = obj.y - (obj.yVelocity + obj.bonusVelocity);
     }
-    if (obj.y < ball.y) {
+    if (obj.y + (obj.height / 4) < ball.y) {
         obj.y = obj.y + (obj.yVelocity + obj.bonusVelocity);
     }
+
+
+    // if (obj.y > ball.y) {
+    //     obj.y = obj.y - (obj.yVelocity + obj.bonusVelocity);
+    // }
+    // if (obj.y < ball.y) {
+    //     obj.y = obj.y + (obj.yVelocity + obj.bonusVelocity);
+    // }
 }
 
 function OnHit(left) {
 
-    var i = Math.floor(Math.random() * 2);
-    console.log(i);
+    ball.bonusSpeedX++;
 
     if (left) {
-        switch (i) {
-            case 0:
-                ball.bonusSpeedX++;
-                break;
-            case 1:
-                ball.bonusSpeedY++;
-                break;
-            default:
-                break;
-        }
-    }else{
-        switch (i) {
-            case 0:
-                ball.bonusSpeedX++;
-                break;
-            case 1:
-                botPaddle.bonusVelocity++;
-            default:
-                break;
-        }
+        boolTimer = true;
+        timer = 0;
+        let delta = lastHit.offset = ball.y - paddle.y;
+        let ratio = delta / (paddle.height / 2.0);
+        let alpha = (ratio * Math.PI) / 3.0;
+        ball.yVelocity = (Math.tan(alpha) * Math.abs(ball.xVelocity));
+        // console.log("vx: " + ball.xVelocity);
+        // console.log("vy: ", ball.yVelocity);
+    } else {
+        let delta = ball.y - botPaddle.y;
+        let ratio = delta / (paddle.height / 2.0);
+        let alpha = (ratio * Math.PI) / 3.0;
+        ball.yVelocity = (Math.tan(alpha) * Math.abs(ball.xVelocity));
     }
 
 }
@@ -142,10 +142,10 @@ function OnHit(left) {
 function moveEverything() {
 
     ball.x = (ball.xVelocity > 0) ? (ball.x + ball.xVelocity + ball.bonusSpeedX) : (ball.x + ball.xVelocity - ball.bonusSpeedX);
-    ball.y = (ball.yVelocity > 0) ? (ball.y + ball.yVelocity + ball.bonusSpeedY) : (ball.y + ball.yVelocity - ball.bonusSpeedY);
+    ball.y = (ball.yVelocity > 0) ? (ball.y + ball.yVelocity) : (ball.y + ball.yVelocity);
 
     var vx = (ball.xVelocity > 0) ? (ball.xVelocity + ball.bonusSpeedX) : (ball.xVelocity - ball.bonusSpeedX);
-    var vy = (ball.yVelocity > 0) ? (ball.yVelocity + ball.bonusSpeedY) : (ball.yVelocity - ball.bonusSpeedY);
+    var vy = (ball.yVelocity > 0) ? (ball.yVelocity) : (ball.yVelocity);
 
     ball.velocity = Math.sqrt(vx * vx + vy * vy) * fps;
 
@@ -199,20 +199,28 @@ function drawEverything() {
 
     colorCircle(ball.x, ball.y, ball.radius, '#4286f4'); // ball
 
-    // colorRect(0, paddle.y - paddle.height / 2, paddle.thickness, paddle.height, 'white'); // player's paddle
+    colorRect(0, paddle.y - paddle.height / 2, paddle.thickness, paddle.height, 'white'); // player's paddle
 
-    colorRect(0, paddle.y - paddle.height / 2, paddle.thickness, botPaddle.height, 'white'); // left bot's paddle
+    if (boolTimer) {
+
+        lastHit.y = lastHit.offset + paddle.y;
+        colorRect(0, lastHit.y - ball.radius/2, 10, 10, 'red');
+        timer++;
+        if (timer >= 60) {
+            boolTimer = false;
+            timer = 0;
+        }
+    }
+
+    // colorRect(0, paddle.y - paddle.height / 2, paddle.thickness, botPaddle.height, 'white'); // left bot's paddle
 
     colorRect(botPaddle.x, botPaddle.y - botPaddle.height / 2, botPaddle.thickness, botPaddle.height, 'white'); // right bot's paddle
 
     // canvasContext
-    canvasContext.font = "40px Consolas";
+    canvasContext.font = "16px Consolas";
     canvasContext.fillText(score1.toString(), canvas.width * 0.25, canvas.height / 4);
-
-    canvasContext.font = "40px Consolas";
     canvasContext.fillText(score2, canvas.width * 0.75, canvas.height / 4);
-
-    canvasContext.fillText(Number.parseFloat(ball.velocity).toFixed(1) + " pxl/s", (canvas.width / 2 - 3 * 40), canvas.height * 0.2)
+    canvasContext.fillText(Number.parseFloat(ball.velocity).toFixed(1) + " pxl/s", (canvas.width * 0.48), canvas.height * 0.2)
 }
 
 function colorRect(leftX, topY, width, height, drawColor) {
@@ -237,12 +245,11 @@ function resetBall(left) {
         score1++;
     }
 
-    ball.yVelocity = -ball.yVelocity;
+    ball.yVelocity = 0;
     ball.y = Math.random() * canvas.height;
     ball.x = (canvas.width / 2) - (ball.radius / 2);
     // ball.y = (canvas.height / 2) - (ball.radius / 2);
     ball.bonusSpeedX = 0;
-    ball.bonusSpeedY = 0;
     botPaddle.bonusVelocity = 0;
 }
 /*
