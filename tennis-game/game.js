@@ -100,6 +100,7 @@ function initialize() {
 
     if(isMobileDevice()){
         paddleWidth = canvas * 0.3;
+        paddle.height = botPaddle.height = paddleWidth
     }
 };
 
