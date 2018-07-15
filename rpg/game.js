@@ -1,9 +1,9 @@
 enchant();
 
 window.onload = function() {
-    var game = new Game(320, 320);
-    game.fps = 15;
-    game.preload('map1.gif', 'chara0.gif');
+    var game = new Game(360, 320); //width and height
+    game.fps = 12;
+    game.preload('map1.gif', 'chara0.png');
     game.onload = function() {
         var map = new Map(16, 16);
         map.image = game.assets['map1.gif'];
@@ -138,17 +138,25 @@ window.onload = function() {
             [ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
         ]);
 
-        var player = new Sprite(32, 32);
-        player.x = 6 * 16 - 8;
+        var player = new Sprite(32, 32);// width and height of the player's sprites
+        player.x = 6 * 16 - 8; // starting position
         player.y = 10 * 16;
         var image = new Surface(96, 128);
-        image.draw(game.assets['chara0.gif'], 0, 0, 96, 128, 0, 0, 96, 128);
+        image.draw(game.assets['chara0.png'], 0, 0, 96, 128, 0, 0, 96, 128);
         player.image = image;
 
         player.isMoving = false;
         player.direction = 0;
         player.walk = 1;
+
+        var timer = 0;
+        
+        var flag = false;
+
         player.addEventListener('enterframe', function() {
+
+            timer++;
+
             this.frame = this.direction * 3 + this.walk;
             if (this.isMoving) {
                 this.moveBy(this.vx, this.vy);
@@ -185,6 +193,25 @@ window.onload = function() {
                     }
                 }
             }
+
+            // teleport point
+            if(timer >= 36){
+                flag = false;
+                timer = 0;
+            }
+
+            if (Math.floor(player.y / 16) == 10 && Math.floor(player.x / 16) == 20 && !flag) {
+                flag = true;
+                player.x = 3 * 16;
+                player.y = 3 * 16;
+            }
+            
+            if (Math.floor(player.y / 16) == 3 && Math.floor(player.x / 16) == 3 && !flag) {
+                flag = true;
+                player.x = 20 * 16;
+                player.y = 10 * 16;
+            }
+
         });
 
         var stage = new Group();
