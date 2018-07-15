@@ -1,6 +1,6 @@
 var canvas;
 var canvasContext;
-var fps = 60;
+var fps = isMobileDevice() ? 12 : 60;
 var wTime = 6;
 var hTime = 3;
 
@@ -101,20 +101,20 @@ function initialize() {
 
 function AI(obj) {
 
-    if (obj.y - (obj.height / 4) > ball.y) {
-        obj.y = obj.y - (obj.yVelocity + obj.bonusVelocity);
-    }
-    if (obj.y + (obj.height / 4) < ball.y) {
-        obj.y = obj.y + (obj.yVelocity + obj.bonusVelocity);
-    }
-
-
-    // if (obj.y > ball.y) {
+    // if (obj.y - (obj.height / 4) > ball.y) {
     //     obj.y = obj.y - (obj.yVelocity + obj.bonusVelocity);
     // }
-    // if (obj.y < ball.y) {
+    // if (obj.y + (obj.height / 4) < ball.y) {
     //     obj.y = obj.y + (obj.yVelocity + obj.bonusVelocity);
     // }
+
+
+    if (obj.y > ball.y) {
+        obj.y = obj.y - (obj.yVelocity + obj.bonusVelocity);
+    }
+    if (obj.y < ball.y) {
+        obj.y = obj.y + (obj.yVelocity + obj.bonusVelocity);
+    }
 }
 
 function OnHit(left) {
@@ -252,9 +252,7 @@ function resetBall(left) {
     ball.bonusSpeedX = 0;
     botPaddle.bonusVelocity = 0;
 }
-/*
-function resetBall() {
-    ball.x = (canvas.width / 2) - (ball.radius / 2);
-    ball.y = (canvas.height / 2) - (ball.radius / 2);
-}
-*/
+
+function isMobileDevice(){
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+};
