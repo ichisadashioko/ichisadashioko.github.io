@@ -21,6 +21,7 @@ ball.bonusSpeedY = 0;
 ball.velocity = 0;
 
 const PADDLE_THICKNESS = 10;
+var paddleWidth = 200;
 
 var paddle = new Object();
 paddle.thickness = PADDLE_THICKNESS;
@@ -55,7 +56,6 @@ function calculateMousePos(evt) {
 
 window.onload = function () {
     initialize();
-    // resetBall(null);
 
     setInterval(function () {
         moveEverything();
@@ -72,11 +72,11 @@ window.onload = function () {
         paddle.y = mousePos.y;
     });
 
-    // canvas.addEventListener('touchevent', function (evt) {
-    //     var mousePos = calculateMousePos(evt);
-    //     // paddle.x = mousePos.x;
-    //     paddle.y = mousePos.y;
-    // });
+    canvas.addEventListener('ontouch', function (evt) {
+        var mousePos = calculateMousePos(evt);
+        // paddle.x = mousePos.x;
+        paddle.y = mousePos.y;
+    });
 
 }
 
@@ -97,6 +97,10 @@ function initialize() {
 
     ball.x = (canvas.width / 2) - (ball.radius / 2);
     ball.y = (canvas.height / 2) - (ball.radius / 2);
+
+    if(isMobileDevice()){
+        paddleWidth = canvas * 0.3;
+    }
 };
 
 function AI(obj) {
