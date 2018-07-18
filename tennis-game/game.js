@@ -72,7 +72,7 @@ window.onload = function () {
         paddle.y = mousePos.y;
     });
 
-    canvas.addEventListener('ontouch', function (evt) {
+    canvas.addEventListener('touchstart', function (evt) {
         var mousePos = calculateMousePos(evt);
         // paddle.x = mousePos.x;
         paddle.y = mousePos.y;
@@ -89,7 +89,7 @@ function initialize() {
     ball.xVelocity = canvas.width / (fps * wTime);
     ball.yVelocity = canvas.height / (fps * hTime);
 
-    botPaddle.yVelocity = paddle.yVelocity = ball.yVelocity;
+    botPaddle.yVelocity = paddle.yVelocity = ball.yVelocity * 10;
 
     paddle.y = botPaddle.y = canvas.height / 2;
     botPaddle.x = canvas.width - botPaddle.thickness;
@@ -98,10 +98,10 @@ function initialize() {
     ball.x = (canvas.width / 2) - (ball.radius / 2);
     ball.y = (canvas.height / 2) - (ball.radius / 2);
 
-    if(isMobileDevice()){
-        paddleWidth = canvas * 0.3;
-        paddle.height = botPaddle.height = paddleWidth
-    }
+    // if(isMobileDevice()){
+    //     paddleWidth = canvas * 0.3;
+    //     paddle.height = botPaddle.height = paddleWidth
+    // }
 };
 
 function AI(obj) {
@@ -132,14 +132,17 @@ function OnHit(left) {
         let delta = lastHit.offset = ball.y - paddle.y;
         let ratio = delta / (paddle.height / 2.0);
         let alpha = (ratio * Math.PI) / 3.0;
-        ball.yVelocity = (Math.tan(alpha) * Math.abs(ball.xVelocity));
-        // console.log("vx: " + ball.xVelocity);
-        // console.log("vy: ", ball.yVelocity);
+        console.log("alpha = " + ((alpha * 180.0)/Math.PI));
+
+        ball.yVelocity = (Math.tan(alpha) * Math.abs(ball.xVelocity + ball.bonusSpeedX));
+
+        console.log("vx: " + (ball.xVelocity + ball.bonusSpeedX));
+        console.log("vy: ", ball.yVelocity);
     } else {
         let delta = ball.y - botPaddle.y;
-        let ratio = delta / (paddle.height / 2.0);
+        let ratio = delta / (botPaddle.height / 2.0);
         let alpha = (ratio * Math.PI) / 3.0;
-        ball.yVelocity = (Math.tan(alpha) * Math.abs(ball.xVelocity));
+        ball.yVelocity = (Math.tan(alpha) * Math.abs(ball.xVelocity + ball.bonusSpeedX));
     }
 
 }
@@ -211,7 +214,7 @@ function drawEverything() {
         lastHit.y = lastHit.offset + paddle.y;
         colorRect(0, lastHit.y - ball.radius/2, 10, 10, 'red');
         timer++;
-        if (timer >= 60) {
+        if (timer >= fps) {
             boolTimer = false;
             timer = 0;
         }
