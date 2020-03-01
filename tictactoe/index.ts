@@ -58,11 +58,24 @@ drawGrid()
  */
 const X = 1
 const O = -1
-let gameState = [
-    [X, 0, 0],
-    [O, 0, 0],
-    [0, X, O],
-]
+
+let turn = X
+
+let gameEnded: boolean
+let gameState: number[][]
+
+function resetGameState() {
+    turn = X
+    gameEnded = false
+
+    gameState = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ]
+}
+
+resetGameState()
 
 function drawX(x: number, y: number) {
     let line1 = {
@@ -155,14 +168,131 @@ function draw() {
     renderGameState()
 }
 
-let turn = X
+function findMatrixShape(x: number[][]) {
+    let numRows = x.length
+    let numColumns = x[0].length
+
+    return {
+        rows: numRows,
+        columns: numColumns,
+    }
+}
+
+function multiply(a: number[][], b: number[][]) {
+    let aShape = findMatrixShape(a)
+    let bShape = findMatrixShape(b)
+
+    if (aShape.columns !== bShape.rows) {
+        throw `Cannot perform matrix multipication on ${aShape.rows}x${aShape.columns} and ${bShape.rows}x${bShape.columns}!`
+    }
+
+    let resultMatrix: number[][] = []
+    for (let i = 0; i < aShape.rows; i++) {
+        resultMatrix[i] = []
+        for (let j = 0; j < bShape.columns; j++) {
+            resultMatrix[i][j] = 0
+            for (let k = 0; k < aShape.columns; k++) {
+                resultMatrix[i][j] += a[i][k] * b[k][j]
+            }
+        }
+    }
+
+    return resultMatrix
+}
+
+function transpose(x: number[][]) {
+    let xShape = findMatrixShape(x)
+    let resultMatrix: number[][] = []
+
+    for (let i = 0; i < xShape.columns; i++) {
+        resultMatrix[i] = []
+        for (let j = 0; j < xShape.rows; j++) {
+            resultMatrix[i][j] = x[j][i]
+        }
+    }
+
+    return resultMatrix
+}
+
+function trace(x: number[][]) {
+    let xShape = findMatrixShape(x)
+    if (xShape.rows !== xShape.columns) {
+        throw `Cannot calculate trace for matrix with shape ${xShape.rows}x${xShape.columns}`
+    }
+
+    let result = 0
+    for (let i = 0; i < xShape.rows; i++) {
+        result += x[i][i]
+    }
+
+    return result
+}
+
+let eMatrices = [
+    [[1], [0], [0]],
+    [[0], [1], [0]],
+    [[0], [0], [1]],
+]
+
+let aMatrix = [[1, 1, 1]]
+
+function whoIsTheWinner() {
+    // https://math.stackexchange.com/questions/467757/determine-the-winner-of-a-tic-tac-toe-board-with-a-single-matrix-expression
+
+    let results = []
+
+    for (let i = 0; i < eMatrices.length; i++) {
+        let se = multiply(gameState, eMatrices[i])
+        let ase = multiply(aMatrix, se)
+        results.push(ase[0][0])
+    }
+
+    let sT = transpose(gameState)
+    for (let i = 0; i < eMatrices.length; i++) {
+        let se = multiply(sT, eMatrices[i])
+        let ase = multiply(aMatrix, se)
+        results.push(ase[0][0])
+    }
+
+    results.push(trace(gameState))
+    // Permute (swap) rows
+    let P = [
+        [0, 0, 1],
+        [0, 1, 0],
+        [1, 0, 0],
+    ]
+    let Ps = multiply(P, gameState)
+    results.push(trace(Ps))
+
+    for (let i = 0; i < results.length; i++) {
+        if (results[i] === 3) {
+            // X wins
+            gameEnded = true
+            break
+        } else if (results[i] === -3) {
+            // O wins
+            gameEnded = true
+            break
+        }
+    }
+
+    console.log(results)
+}
 
 function touchUp(evt: MouseEvent) {
     drawTouchPoint(evt.x, evt.y)
     let tilePos = mapTouchPosToTile(evt.x, evt.y)
-    gameState[tilePos.y][tilePos.x] = turn
-    turn = -turn
-    draw()
+
+    if (gameEnded) {
+        resetGameState()
+    }
+
+    if (gameState[tilePos.y][tilePos.x] === 0) {
+        gameState[tilePos.y][tilePos.x] = turn
+        turn = -turn
+        draw()
+        whoIsTheWinner()
+    }
 }
 
 canvas.addEventListener('mouseup', touchUp)
