@@ -1,0 +1,10 @@
+{
+  "name": "tictactoe",
+  "scripts": {
+    "dev": "parcel index.html --open"
+  },
+  "dependencies": {
+    "parcel": "^1.12.4",
+    "typescript": "^3.8.3"
+  }
+}
