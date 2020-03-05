@@ -1,5 +1,9 @@
 {
   "name": "ichisadashioko.github.io",
+  "scripts": {
+    "dev": "parcel index.tsx -d . -o index.js",
+    "build": "parcel build index.tsx -d . -o index.js --no-minify"
+  },
   "dependencies": {
     "@types/react": "^16.9.22",
     "@types/react-dom": "^16.9.5",
