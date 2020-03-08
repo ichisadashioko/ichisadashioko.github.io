@@ -1,245 +1,357 @@
 "use strict";
-var TILE_WIDTH = 60;
-var SEP_WIDTH = 5;
-var GAME_WIDTH = TILE_WIDTH * 3 + SEP_WIDTH * 2;
-var GAME_HEIGHT = TILE_WIDTH * 3 + SEP_WIDTH * 2;
-var canvas = document.getElementById('main');
-canvas.width = GAME_WIDTH;
-canvas.height = GAME_HEIGHT;
-var scale = 1;
-var offset = {
-    x: 0,
-    y: 0,
-};
-function resizeCanvas() {
-    scale = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
-    canvas.style.transform = "scale(" + scale + ")";
-    offset.x = (window.innerWidth - (GAME_WIDTH * scale)) / 2;
-    offset.y = (window.innerHeight - (GAME_HEIGHT * scale)) / 2;
-    canvas.style.left = offset.x + "px";
-    canvas.style.top = offset.y + "px";
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-var ctx = canvas.getContext('2d');
-function drawLine(x1, y1, x2, y2, lineWidth, style) {
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = style;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.closePath();
-    ctx.stroke();
-}
-function drawGrid() {
-    ctx.fillStyle = 'rgba(0,255,255,1)';
-    ctx.fillRect(0, TILE_WIDTH, GAME_WIDTH, SEP_WIDTH);
-    ctx.fillRect(0, TILE_WIDTH * 2 + SEP_WIDTH, GAME_WIDTH, SEP_WIDTH);
-    ctx.fillRect(TILE_WIDTH, 0, SEP_WIDTH, GAME_HEIGHT);
-    ctx.fillRect(TILE_WIDTH * 2 + SEP_WIDTH, 0, SEP_WIDTH, GAME_HEIGHT);
-}
-drawGrid();
-/**
- *  0: nothing
- *  1: X
- * -1: O
- */
-var X = 1;
-var O = -1;
-var turn = X;
-var gameEnded;
-var gameState;
-function resetGameState() {
-    turn = X;
-    gameEnded = false;
-    gameState = [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-    ];
-}
-resetGameState();
-function drawX(x, y) {
-    var line1 = {
-        start: {
-            x: TILE_WIDTH * 0.1 + x * (TILE_WIDTH + SEP_WIDTH),
-            y: TILE_WIDTH * 0.1 + y * (TILE_WIDTH + SEP_WIDTH),
-        },
-        end: {
-            x: TILE_WIDTH * 0.9 + x * (TILE_WIDTH + SEP_WIDTH),
-            y: TILE_WIDTH * 0.9 + y * (TILE_WIDTH + SEP_WIDTH),
-        },
-    };
-    var line2 = {
-        start: {
-            x: TILE_WIDTH * 0.1 + x * (TILE_WIDTH + SEP_WIDTH),
-            y: TILE_WIDTH * 0.9 + y * (TILE_WIDTH + SEP_WIDTH),
-        },
-        end: {
-            x: TILE_WIDTH * 0.9 + x * (TILE_WIDTH + SEP_WIDTH),
-            y: TILE_WIDTH * 0.1 + y * (TILE_WIDTH + SEP_WIDTH),
-        },
-    };
-    var lineWidth = TILE_WIDTH * 0.1;
-    var style = 'rgba(255,0,0,1)';
-    drawLine(line1.start.x, line1.start.y, line1.end.x, line1.end.y, lineWidth, style);
-    drawLine(line2.start.x, line2.start.y, line2.end.x, line2.end.y, lineWidth, style);
-}
-function drawO(x, y) {
-    ctx.lineWidth = TILE_WIDTH * 0.1;
-    ctx.strokeStyle = 'rgba(0,0,255,1)';
-    var radius = TILE_WIDTH * 0.4;
-    var origin = {
-        x: TILE_WIDTH * 0.5 + x * (TILE_WIDTH + SEP_WIDTH),
-        y: TILE_WIDTH * 0.5 + y * (TILE_WIDTH + SEP_WIDTH),
-    };
-    ctx.beginPath();
-    ctx.arc(origin.x, origin.y, radius, 0, 2 * Math.PI);
-    ctx.closePath();
-    ctx.stroke();
-}
-function renderGameState() {
-    for (var i = 0; i < gameState.length; i++) {
-        for (var j = 0; j < gameState[i].length; j++) {
-            if (gameState[i][j] === X) {
-                drawX(j, i);
-            }
-            else if (gameState[i][j] === O) {
-                drawO(j, i);
+var Matrix;
+(function (Matrix) {
+    function findMatrixShape(x) {
+        var numRows = x.length;
+        var numColumns = x[0].length;
+        return {
+            rows: numRows,
+            columns: numColumns,
+        };
+    }
+    Matrix.findMatrixShape = findMatrixShape;
+    function multiply(a, b) {
+        var aShape = findMatrixShape(a);
+        var bShape = findMatrixShape(b);
+        if (aShape.columns !== bShape.rows) {
+            throw "Cannot perform matrix multipication on " + aShape.rows + "x" + aShape.columns + " and " + bShape.rows + "x" + bShape.columns + "!";
+        }
+        var resultMatrix = [];
+        for (var i = 0; i < aShape.rows; i++) {
+            resultMatrix[i] = [];
+            for (var j = 0; j < bShape.columns; j++) {
+                resultMatrix[i][j] = 0;
+                for (var k = 0; k < aShape.columns; k++) {
+                    resultMatrix[i][j] += a[i][k] * b[k][j];
+                }
             }
         }
+        return resultMatrix;
     }
-}
-renderGameState();
-function drawTouchPoint(x, y) {
-    ctx.fillStyle = 'rgba(255,0,0,0.5)';
-    ctx.beginPath();
-    ctx.arc((x - offset.x) / scale, (y - offset.y) / scale, 5, 0, 2 * Math.PI);
-    ctx.closePath();
-    ctx.fill();
-}
-function floatToInt(x) {
-    return (x - (x % 1));
-}
-function mapTouchPosToTile(x, y) {
-    var pos = {
-        x: (x - offset.x) / scale,
-        y: (y - offset.y) / scale,
-    };
-    var tilePos = {
-        x: floatToInt(pos.x / (GAME_WIDTH / 3)),
-        y: floatToInt(pos.y / (GAME_HEIGHT / 3)),
-    };
-    return tilePos;
-}
-function draw() {
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-    drawGrid();
-    renderGameState();
-}
-function findMatrixShape(x) {
-    var numRows = x.length;
-    var numColumns = x[0].length;
-    return {
-        rows: numRows,
-        columns: numColumns,
-    };
-}
-function multiply(a, b) {
-    var aShape = findMatrixShape(a);
-    var bShape = findMatrixShape(b);
-    if (aShape.columns !== bShape.rows) {
-        throw "Cannot perform matrix multipication on " + aShape.rows + "x" + aShape.columns + " and " + bShape.rows + "x" + bShape.columns + "!";
-    }
-    var resultMatrix = [];
-    for (var i = 0; i < aShape.rows; i++) {
-        resultMatrix[i] = [];
-        for (var j = 0; j < bShape.columns; j++) {
-            resultMatrix[i][j] = 0;
-            for (var k = 0; k < aShape.columns; k++) {
-                resultMatrix[i][j] += a[i][k] * b[k][j];
+    Matrix.multiply = multiply;
+    function transpose(x) {
+        var xShape = findMatrixShape(x);
+        var resultMatrix = [];
+        for (var i = 0; i < xShape.columns; i++) {
+            resultMatrix[i] = [];
+            for (var j = 0; j < xShape.rows; j++) {
+                resultMatrix[i][j] = x[j][i];
             }
         }
+        return resultMatrix;
     }
-    return resultMatrix;
-}
-function transpose(x) {
-    var xShape = findMatrixShape(x);
-    var resultMatrix = [];
-    for (var i = 0; i < xShape.columns; i++) {
-        resultMatrix[i] = [];
-        for (var j = 0; j < xShape.rows; j++) {
-            resultMatrix[i][j] = x[j][i];
+    Matrix.transpose = transpose;
+    function trace(x) {
+        var xShape = findMatrixShape(x);
+        if (xShape.rows !== xShape.columns) {
+            throw "Cannot calculate trace for matrix with shape " + xShape.rows + "x" + xShape.columns;
         }
-    }
-    return resultMatrix;
-}
-function trace(x) {
-    var xShape = findMatrixShape(x);
-    if (xShape.rows !== xShape.columns) {
-        throw "Cannot calculate trace for matrix with shape " + xShape.rows + "x" + xShape.columns;
-    }
-    var result = 0;
-    for (var i = 0; i < xShape.rows; i++) {
-        result += x[i][i];
-    }
-    return result;
-}
-var eMatrices = [
-    [[1], [0], [0]],
-    [[0], [1], [0]],
-    [[0], [0], [1]],
-];
-var aMatrix = [[1, 1, 1]];
-function whoIsTheWinner() {
-    // https://math.stackexchange.com/questions/467757/determine-the-winner-of-a-tic-tac-toe-board-with-a-single-matrix-expression
-    var results = [];
-    for (var i = 0; i < eMatrices.length; i++) {
-        var se = multiply(gameState, eMatrices[i]);
-        var ase = multiply(aMatrix, se);
-        results.push(ase[0][0]);
-    }
-    var sT = transpose(gameState);
-    for (var i = 0; i < eMatrices.length; i++) {
-        var se = multiply(sT, eMatrices[i]);
-        var ase = multiply(aMatrix, se);
-        results.push(ase[0][0]);
-    }
-    results.push(trace(gameState));
-    // Permute (swap) rows
-    var P = [
-        [0, 0, 1],
-        [0, 1, 0],
-        [1, 0, 0],
-    ];
-    var Ps = multiply(P, gameState);
-    results.push(trace(Ps));
-    for (var i = 0; i < results.length; i++) {
-        if (results[i] === 3) {
-            // X wins
-            gameEnded = true;
-            break;
+        var result = 0;
+        for (var i = 0; i < xShape.rows; i++) {
+            result += x[i][i];
         }
-        else if (results[i] === -3) {
-            // O wins
-            gameEnded = true;
-            break;
+        return result;
+    }
+    Matrix.trace = trace;
+})(Matrix || (Matrix = {}));
+var TicTacToe;
+(function (TicTacToe) {
+    TicTacToe.TILE_WIDTH = 100;
+    TicTacToe.SEP_WIDTH = 10;
+    TicTacToe.GAME_WIDTH = TicTacToe.TILE_WIDTH * 3 + TicTacToe.SEP_WIDTH * 2;
+    TicTacToe.GAME_HEIGHT = TicTacToe.TILE_WIDTH * 3 + TicTacToe.SEP_WIDTH * 2;
+    /**
+     *  0: nothing
+     *  1: X
+     * -1: O
+     */
+    TicTacToe.X = 1;
+    TicTacToe.O = -1;
+    var Game = /** @class */ (function () {
+        function Game(id, loadingImageURL, startImageURL) {
+            var canvas = document.getElementById(id);
+            if (canvas === null) {
+                throw "Element with ID " + id + " does not exists!";
+            }
+            if (!(canvas instanceof HTMLCanvasElement)) {
+                console.log(canvas);
+                throw "Element with ID " + id + " is not a canvas!";
+            }
+            this.canvas = canvas;
+            this.canvas.width = TicTacToe.GAME_WIDTH;
+            this.canvas.height = TicTacToe.GAME_HEIGHT;
+            var ctx = canvas.getContext('2d');
+            if (ctx === null) {
+                throw "This browser does not support CanvasRenderingContext2D!";
+            }
+            this.ctx = ctx;
+            this.scale = 1;
+            this.offset = {
+                x: 0,
+                y: 0,
+            };
+            this.turn = TicTacToe.X;
+            this.board = [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+            ];
+            this.fps = 20;
+            this.loadingTimeout = 3000;
+            this.loading = true;
+            if (loadingImageURL) {
+                this.loadingImage = new Image();
+                this.loadingImage.src = loadingImageURL;
+            }
+            if (startImageURL) {
+                this.startImage = new Image();
+                this.startImage.src = startImageURL;
+            }
+            this.mouseupListener = this.handleMouseupEvent.bind(this);
         }
-    }
-    console.log(results);
-}
-function touchUp(evt) {
-    drawTouchPoint(evt.x, evt.y);
-    var tilePos = mapTouchPosToTile(evt.x, evt.y);
-    if (gameEnded) {
-        resetGameState();
-    }
-    if (gameState[tilePos.y][tilePos.x] === 0) {
-        gameState[tilePos.y][tilePos.x] = turn;
-        turn = -turn;
-        draw();
-        whoIsTheWinner();
-    }
-}
-canvas.addEventListener('mouseup', touchUp);
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJpbmRleC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUEsSUFBTSxVQUFVLEdBQUcsRUFBRSxDQUFBO0FBQ3JCLElBQU0sU0FBUyxHQUFHLENBQUMsQ0FBQTtBQUNuQixJQUFNLFVBQVUsR0FBRyxVQUFVLEdBQUcsQ0FBQyxHQUFHLFNBQVMsR0FBRyxDQUFDLENBQUE7QUFDakQsSUFBTSxXQUFXLEdBQUcsVUFBVSxHQUFHLENBQUMsR0FBRyxTQUFTLEdBQUcsQ0FBQyxDQUFBO0FBRWxELElBQUksTUFBTSxHQUFHLFFBQVEsQ0FBQyxjQUFjLENBQUMsTUFBTSxDQUFzQixDQUFBO0FBQ2pFLE1BQU0sQ0FBQyxLQUFLLEdBQUcsVUFBVSxDQUFBO0FBQ3pCLE1BQU0sQ0FBQyxNQUFNLEdBQUcsV0FBVyxDQUFBO0FBRTNCLElBQUksS0FBSyxHQUFHLENBQUMsQ0FBQTtBQUNiLElBQUksTUFBTSxHQUFHO0lBQ1QsQ0FBQyxFQUFFLENBQUM7SUFDSixDQUFDLEVBQUUsQ0FBQztDQUNQLENBQUE7QUFFRCxTQUFTLFlBQVk7SUFDakIsS0FBSyxHQUFHLElBQUksQ0FBQyxHQUFHLENBQ1osTUFBTSxDQUFDLFVBQVUsR0FBRyxVQUFVLEVBQzlCLE1BQU0sQ0FBQyxXQUFXLEdBQUcsV0FBVyxDQUNuQyxDQUFBO0lBRUQsTUFBTSxDQUFDLEtBQUssQ0FBQyxTQUFTLEdBQUcsV0FBUyxLQUFLLE1BQUcsQ0FBQTtJQUMxQyxNQUFNLENBQUMsQ0FBQyxHQUFHLENBQUMsTUFBTSxDQUFDLFVBQVUsR0FBRyxDQUFDLFVBQVUsR0FBRyxLQUFLLENBQUMsQ0FBQyxHQUFHLENBQUMsQ0FBQTtJQUN6RCxNQUFNLENBQUMsQ0FBQyxHQUFHLENBQUMsTUFBTSxDQUFDLFdBQVcsR0FBRyxDQUFDLFdBQVcsR0FBRyxLQUFLLENBQUMsQ0FBQyxHQUFHLENBQUMsQ0FBQTtJQUMzRCxNQUFNLENBQUMsS0FBSyxDQUFDLElB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
+        Game.prototype.calculateDimemsion = function () {
+            this.scale = Math.min(window.innerWidth / TicTacToe.GAME_WIDTH, window.innerHeight / TicTacToe.GAME_HEIGHT);
+            this.offset = {
+                x: (window.innerWidth - (TicTacToe.GAME_WIDTH * this.scale)) / 2,
+                y: (window.innerHeight - (TicTacToe.GAME_HEIGHT * this.scale)) / 2,
+            };
+        };
+        Game.prototype.resize = function () {
+            this.calculateDimemsion();
+            this.canvas.style.transform = "scale(" + this.scale + ")";
+            this.canvas.style.left = this.offset.x + "px";
+            this.canvas.style.top = this.offset.y + "px";
+        };
+        Game.prototype.drawLine = function (x1, y1, x2, y2, lineWidth, style) {
+            this.ctx.lineWidth = lineWidth;
+            this.ctx.strokeStyle = style;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.closePath();
+            this.ctx.stroke();
+        };
+        Game.prototype.drawGrid = function () {
+            this.ctx.fillStyle = 'rgba(0,255,255,1)';
+            this.ctx.fillRect(0, TicTacToe.TILE_WIDTH, TicTacToe.GAME_WIDTH, TicTacToe.SEP_WIDTH);
+            this.ctx.fillRect(0, TicTacToe.TILE_WIDTH * 2 + TicTacToe.SEP_WIDTH, TicTacToe.GAME_WIDTH, TicTacToe.SEP_WIDTH);
+            this.ctx.fillRect(TicTacToe.TILE_WIDTH, 0, TicTacToe.SEP_WIDTH, TicTacToe.GAME_HEIGHT);
+            this.ctx.fillRect(TicTacToe.TILE_WIDTH * 2 + TicTacToe.SEP_WIDTH, 0, TicTacToe.SEP_WIDTH, TicTacToe.GAME_HEIGHT);
+        };
+        Game.prototype.drawX = function (x, y) {
+            var line1 = {
+                start: {
+                    x: TicTacToe.TILE_WIDTH * 0.1 + x * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                    y: TicTacToe.TILE_WIDTH * 0.1 + y * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                },
+                end: {
+                    x: TicTacToe.TILE_WIDTH * 0.9 + x * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                    y: TicTacToe.TILE_WIDTH * 0.9 + y * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                },
+            };
+            var line2 = {
+                start: {
+                    x: TicTacToe.TILE_WIDTH * 0.1 + x * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                    y: TicTacToe.TILE_WIDTH * 0.9 + y * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                },
+                end: {
+                    x: TicTacToe.TILE_WIDTH * 0.9 + x * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                    y: TicTacToe.TILE_WIDTH * 0.1 + y * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                },
+            };
+            var lineWidth = TicTacToe.TILE_WIDTH * 0.1;
+            var style = 'rgba(255,0,0,1)';
+            this.drawLine(line1.start.x, line1.start.y, line1.end.x, line1.end.y, lineWidth, style);
+            this.drawLine(line2.start.x, line2.start.y, line2.end.x, line2.end.y, lineWidth, style);
+        };
+        Game.prototype.drawO = function (x, y) {
+            this.ctx.lineWidth = TicTacToe.TILE_WIDTH * 0.1;
+            this.ctx.strokeStyle = 'rgba(0,0,255,1)';
+            var radius = TicTacToe.TILE_WIDTH * 0.4;
+            var origin = {
+                x: TicTacToe.TILE_WIDTH * 0.5 + x * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+                y: TicTacToe.TILE_WIDTH * 0.5 + y * (TicTacToe.TILE_WIDTH + TicTacToe.SEP_WIDTH),
+            };
+            this.ctx.beginPath();
+            this.ctx.arc(origin.x, origin.y, radius, 0, 2 * Math.PI);
+            this.ctx.closePath();
+            this.ctx.stroke();
+        };
+        Game.prototype.drawBoard = function () {
+            for (var i = 0; i < this.board.length; i++) {
+                for (var j = 0; j < this.board[i].length; j++) {
+                    if (this.board[i][j] === TicTacToe.X) {
+                        this.drawX(j, i);
+                    }
+                    else if (this.board[i][j] === TicTacToe.O) {
+                        this.drawO(j, i);
+                    }
+                }
+            }
+        };
+        Game.prototype.render = function () {
+            this.ctx.clearRect(0, 0, TicTacToe.GAME_WIDTH, TicTacToe.GAME_HEIGHT);
+            this.drawGrid();
+            this.drawBoard();
+        };
+        Game.prototype.floatToInt = function (x) {
+            return (x - (x % 1));
+        };
+        Game.prototype.mapTouchPosToTile = function (x, y) {
+            var pos = {
+                x: (x - this.offset.x) / this.scale,
+                y: (y - this.offset.y) / this.scale,
+            };
+            var tilePos = {
+                x: this.floatToInt(pos.x / (TicTacToe.GAME_WIDTH / 3)),
+                y: this.floatToInt(pos.y / (TicTacToe.GAME_HEIGHT / 3)),
+            };
+            return tilePos;
+        };
+        Game.prototype.checkMatch = function () {
+            // https://math.stackexchange.com/questions/467757/determine-the-winner-of-a-tic-tac-toe-board-with-a-single-matrix-expression
+            var results = [];
+            var eMatrices = [
+                [[1], [0], [0]],
+                [[0], [1], [0]],
+                [[0], [0], [1]],
+            ];
+            var aMatrix = [[1, 1, 1]];
+            for (var i = 0; i < eMatrices.length; i++) {
+                var se = Matrix.multiply(this.board, eMatrices[i]);
+                var ase = Matrix.multiply(aMatrix, se);
+                results.push(ase[0][0]);
+            }
+            var sT = Matrix.transpose(this.board);
+            for (var i = 0; i < eMatrices.length; i++) {
+                var se = Matrix.multiply(sT, eMatrices[i]);
+                var ase = Matrix.multiply(aMatrix, se);
+                results.push(ase[0][0]);
+            }
+            results.push(Matrix.trace(this.board));
+            // Permute (swap) rows
+            var P = [
+                [0, 0, 1],
+                [0, 1, 0],
+                [1, 0, 0],
+            ];
+            var Ps = Matrix.multiply(P, this.board);
+            results.push(Matrix.trace(Ps));
+            var winner = 0;
+            for (var i = 0; i < results.length; i++) {
+                if (results[i] === 3) {
+                    // X wins
+                    winner = TicTacToe.X;
+                    break;
+                }
+                else if (results[i] === -3) {
+                    // O wins
+                    winner = TicTacToe.O;
+                    break;
+                }
+            }
+            return winner;
+        };
+        Game.prototype.resetMatch = function () {
+            this.turn = TicTacToe.X;
+            this.board = [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+            ];
+        };
+        Game.prototype.handleMouseupEvent = function (evt) {
+            var tilePos = this.mapTouchPosToTile(evt.x, evt.y);
+            if (this.board[tilePos.y][tilePos.x] !== 0) {
+                return;
+            }
+            this.board[tilePos.y][tilePos.x] = this.turn;
+            this.turn = -this.turn;
+            this.render();
+            var winner = this.checkMatch();
+            if (winner === 0) {
+                return;
+            }
+            this.canvas.removeEventListener('mouseup', this.mouseupListener);
+        };
+        Game.prototype.attach = function () {
+            this.resize();
+            // attach events
+            window.addEventListener('resize', this.resize.bind(this));
+        };
+        Game.prototype.start = function () {
+            this.resetMatch();
+            this.render();
+            this.canvas.addEventListener('mouseup', this.mouseupListener);
+        };
+        Game.prototype.renderLoadingScreen = function (alpha) {
+            this.ctx.clearRect(0, 0, TicTacToe.GAME_WIDTH, TicTacToe.GAME_HEIGHT);
+            if (this.loadingImage) {
+                var offset = {
+                    x: (this.canvas.width - this.loadingImage.width) / 2,
+                    y: (this.canvas.height - this.loadingImage.height) / 2,
+                };
+                var previousAlpha = this.ctx.globalAlpha;
+                this.ctx.globalAlpha = alpha;
+                this.ctx.drawImage(this.loadingImage, offset.x, offset.y);
+                this.ctx.globalAlpha = previousAlpha;
+            }
+        };
+        Game.prototype.run = function () {
+            // Play the loading screen.
+            var numDrawCalls = this.floatToInt(this.loadingTimeout / this.fps);
+            var drawInterval = 1000 / this.fps;
+            // We will update 20 times per second
+            // The loading image alpha will change from 1 to 0 in 1 second
+            var alpha = 1;
+            var _loop_1 = function (i) {
+                var _i = i % this_1.fps;
+                if (_i === 0) {
+                    if (alpha > 0.5) {
+                        alpha = 1;
+                    }
+                    else {
+                        alpha = 0;
+                    }
+                }
+                else {
+                    alpha = _i / this_1.fps;
+                }
+                if ((i % (this_1.fps * 2)) > this_1.fps) {
+                    alpha = 1 - alpha;
+                }
+                var drawAfter = i * drawInterval;
+                var safeThreadVars_1 = {
+                    _this: this_1,
+                    drawAfter: drawAfter,
+                    alpha: alpha,
+                    i: i,
+                };
+                setTimeout(function () {
+                    var callStart = performance.now();
+                    safeThreadVars_1._this.renderLoadingScreen.bind(safeThreadVars_1._this)(safeThreadVars_1.alpha);
+                }, safeThreadVars_1.drawAfter);
+            };
+            var this_1 = this;
+            for (var i = 0; i < numDrawCalls; i++) {
+                _loop_1(i);
+            }
+            // If we were actually loading assets, I think we should finish the loading process here.
+            var safeThreadVars = {
+                _this: this,
+            };
+            setTimeout(function () {
+                safeThreadVars._this.loading = false;
+                safeThreadVars._this.start();
+            }, numDrawCalls * drawInterval);
+        };
+        return Game;
+    }());
+    TicTacToe.Game = Game;
+})(TicTacToe || (TicTacToe = {}));
+var loadingImageURL = 'loading_x2.png';
+var startImageURL = 'start.png';
+var app = new TicTacToe.Game('main', loadingImageURL, startImageURL);
+app.attach();
+app.run();
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJpbmRleC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUEsSUFBVSxNQUFNLENBNERmO0FBNURELFdBQVUsTUFBTTtJQUNaLFNBQWdCLGVBQWUsQ0FBQyxDQUFhO1FBQ3pDLElBQUksT0FBTyxHQUFHLENBQUMsQ0FBQyxNQUFNLENBQUE7UUFDdEIsSUFBSSxVQUFVLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLE1BQU0sQ0FBQTtRQUU1QixPQUFPO1lBQ0gsSUFBSSxFQUFFLE9BQU87WUFDYixPQUFPLEVBQUUsVUFBVTtTQUN0QixDQUFBO0lBQ0wsQ0FBQztJQVJlLHNCQUFlLGtCQVE5QixDQUFBO0lBRUQsU0FBZ0IsUUFBUSxDQUFDLENBQWEsRUFBRSxDQUFhO1FBQ2pELElBQUksTUFBTSxHQUFHLGVBQWUsQ0FBQyxDQUFDLENBQUMsQ0FBQTtRQUMvQixJQUFJLE1BQU0sR0FBRyxlQUFlLENBQUMsQ0FBQyxDQUFDLENBQUE7UUFFL0IsSUFBSSxNQUFNLENBQUMsT0FBTyxLQUFLLE1BQU0sQ0FBQyxJQUFJLEVBQUU7WUFDaEMsTUFBTSw0Q0FBMEMsTUFBTSxDQUFDLElBQUksU0FBSSxNQUFNLENBQUMsT0FBTyxhQUFRLE1BQU0sQ0FBQyxJQUFJLFNBQUksTUFBTSxDQUFDLE9BQU8sTUFBRyxDQUFBO1NBQ3hIO1FBRUQsSUFBSSxZQUFZLEdBQWUsRUFBRSxDQUFBO1FBQ2pDLEtBQUssSUFBSSxDQUFDLEdBQUcsQ0FBQyxFQUFFLENBQUMsR0FBRyxNQUFNLENBQUMsSUFBSSxFQUFFLENBQUMsRUFBRSxFQUFFO1lBQ2xDLFlBQVksQ0FBQyxDQUFDLENBQUMsR0FBRyxFQUFFLENBQUE7WUFDcEIsS0FBSyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxHQUFHLE1BQU0sQ0FBQyxPQUFPLEVBQUUsQ0FBQyxFQUFFLEVBQUU7Z0JBQ3JDLFlBQVksQ0FBQyxDQUFDLENBQUMsQ0FB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
