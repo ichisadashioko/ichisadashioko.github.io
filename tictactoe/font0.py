@@ -32,3 +32,5 @@ if __name__ == '__main__':
 
     plt.imshow(text_image)
     plt.show()
+
+    cv2.imwrite(f'{text}.png', text_image)
