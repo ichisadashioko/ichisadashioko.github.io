@@ -56,9 +56,9 @@ function MainArea() {
 
 let navItems = [
     { title: 'novels', link: './novels' },
-    { title: 'enchant.js rpg', link: './rpg' },
+    { title: 'enchant.js rpg', link: 'https://ichisadashioko.github.io/rpg' },
     { title: 'Pong', link: './tennis-game' },
-    { title: 'Tic Tac Toe', link: './tictactoe' }
+    { title: 'Tic Tac Toe', link: 'https://ichisadashioko.github.io/tictactoe' },
 ]
 
 function App() {

@@ -14,30 +14,6 @@ body {
     background-color: black;
 }
 
-.menu {
-    display: none;
-}
-
-.menu .drop-down {
-    display: none;
-}
-
-@media only screen and (max-width: 968px) {
-    .left-bar,
-    .right-bar {
-        display: none;
-    }
-}
-
-@media only screen and (max-width: 600px) {
-    .nav {
-        display: none;
-    }
-    .menu {
-        display: block;
-    }
-}
-
 a {
     display: block;
     text-decoration: none;
@@ -57,33 +33,10 @@ a {
     position: relative;
 }
 
-.menu .drop-down {
-    z-index: 9999;
-    position: absolute;
-    top: 48px;
-    min-width: 100%;
-}
-
-.drop-down p {
-    font-family: monospace;
-    font-size: 2em;
-    padding: 10px 0px;
-    background-color: rgb(88, 88, 88);
-    min-width: 100%;
-}
-
-.menu:hover .drop-down {
-    display: block;
-}
-
 .menu:hover .box {
     color: rgb(185, 65, 65);
     background-color: rgb(185, 65, 65);
     ;
-}
-
-.drop-down p:hover {
-    background-color: rgb(211, 81, 81);
 }
 
 .box {
@@ -97,7 +50,6 @@ a {
     top: 2px;
     box-shadow: 0px 16px currentColor, 0px 32px currentColor;
 }
-
 
 /**
 * navigation bar
@@ -170,79 +122,6 @@ p.active {
         background-color: rgb(0, 255, 255);
     }
 }
-
-
-/**
-* banner-animation
-*/
-
-.banner {
-    width: 100%;
-}
-
-.banner img {
-    width: 100%;
-    height: auto;
-}
-
-.banner-1 {
-    opacity: 1;
-    animation-name: b1;
-    animation-iteration-count: infinite;
-    animation-duration: 6s;
-    animation-timing-function: linear;
-    animation-delay: 0s;
-}
-
-.banner-2 {
-    max-width: 768px;
-    left: 0;
-    top: 0;
-    position: absolute;
-    animation-name: b2;
-    animation-iteration-count: infinite;
-    animation-duration: 6s;
-    animation-timing-function: linear;
-    animation-delay: 0s;
-    z-index: 30;
-}
-
-@keyframes b1 {
-    0% {
-        opacity: 1;
-    }
-    25% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0;
-    }
-    75% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes b2 {
-    0% {
-        opacity: 0;
-    }
-    25% {
-        opacity: 0;
-    }
-    50% {
-        opacity: 1;
-    }
-    75% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
 
 /**
 * unsorted
